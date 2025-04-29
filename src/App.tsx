@@ -1,16 +1,11 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
 import './App.css'
-import 'Artemy components/Seat'
+import {Seat} from "./Artemy components/Seat";
 
 function App() {
-  const [count, setCount] = useState(0)
-
-  return (
+    return (
     <>
       <div>
-          <Seat bgColor={'red'} number={3}></Seat>
+          <Seat bgColor="red" number={3} ></Seat>
       </div>
     </>
   )

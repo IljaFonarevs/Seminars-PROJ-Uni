@@ -22,3 +22,11 @@
   box-shadow: 0 0 5px rgba(0, 0, 0, 0.2);
   z-index: 5;
 }
+
+.seat-reserved:hover,
+.seat-occupied:hover {
+  transform: none;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  cursor: not-allowed;
+  z-index: 1;
+}

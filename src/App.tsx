@@ -22,7 +22,7 @@ function App() {
     <div className="app-container">
       <h1>Select Seat</h1>
       
-      <Canvas initialScale={1.2} maxScale={8}>
+      <Canvas width={400} height={300}>
         {seats.map(seat => (
           <Seat 
             key={seat.id}
@@ -41,5 +41,4 @@ function App() {
     </div>
   );
 }
-
 export default App;

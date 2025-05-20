@@ -1,3 +1,4 @@
+
 import "./Canvas.css";
 import { useState, useRef, useEffect, ReactNode, JSX } from "react";
 
@@ -157,5 +158,4 @@ export function Canvas({
     </div>
   );
 }
-
 export default Canvas;

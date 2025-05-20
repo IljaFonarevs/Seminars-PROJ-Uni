@@ -20,14 +20,10 @@ export function Seat({ seat, isSelected, onClick }: SeatProps) {
 
   // Determine styling based on status and selection
   let statusStyle = {};
-  let statusClassName = 'seat-block';
-  
   if (status === 'reserved') {
     statusStyle = { backgroundColor: '#ffcc80', cursor: 'not-allowed' };
-    statusClassName += ' seat-reserved';
   } else if (status === 'occupied') {
     statusStyle = { backgroundColor: '#ef9a9a', cursor: 'not-allowed' };
-    statusClassName += ' seat-occupied';
   }
 
   const selectionStyle = isSelected ? {
@@ -40,7 +36,7 @@ export function Seat({ seat, isSelected, onClick }: SeatProps) {
 
   return (
     <div 
-      className={statusClassName}
+      className="seat-block" 
       style={{ 
         backgroundColor: color,
         left: `${x}px`,

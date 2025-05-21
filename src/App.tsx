@@ -1,8 +1,8 @@
 import './App.css';
 import { useState } from 'react';
-import { Seat, SeatData } from './Artemy components/Seat';
-import { Canvas } from './Artemy components/Canvas';
-import { seatConfig } from './Artemy components/seatConfig.ts';
+import { Seat, SeatData } from './components/Seat';
+import { Canvas } from './components/Canvas';
+import { seatConfig } from './components/seatConfig.ts';
 
 function App() {
   const [selectedSeat, setSelectedSeat] = useState<number | null>(null);

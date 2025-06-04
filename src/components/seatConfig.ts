@@ -44,9 +44,9 @@ interface EventConfiguration {
 // Function to read and parse events from JSON file
 export async function loadEventsFromJson(): Promise<Event[]> {
   try {
-    const response = await fetch('../../events.json');
+    const response = await fetch('../../public/events.json');
     const events: Event[] = await response.json();
-    return events;
+    return events.events;
   } catch (error) {
     console.error('Error loading events from JSON:', error);
     return [];

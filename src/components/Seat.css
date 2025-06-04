@@ -1,12 +1,12 @@
 .seat-block {
   position: absolute;
-  width: 40px;
-  height: 40px;
+  width: 10px;
+  height: 10px;
   display: flex;
   align-items: center;
   justify-content: center;
   font-weight: bold;
-  font-size: 14px;
+  font-size: 9px;
   color: #333;
   border-radius: 4px;
   padding: 1px;
@@ -29,3 +29,4 @@
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
   cursor: not-allowed;
   z-index: 1;
+}

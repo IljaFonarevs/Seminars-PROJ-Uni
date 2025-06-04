@@ -1,26 +1,225 @@
 .app-container {
   display: flex;
+  min-height: 100vh;
+  font-family: Arial, sans-serif;
+  background-color: #1a1a1a;
+}
+
+.main-content {
+  flex: 1;
+  display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
-  min-height: 30vh;
-  padding: 10px;
-  font-family: Arial, sans-serif;
+  justify-content: flex-start; 
+  padding: 20px;
+  overflow-y: auto;
+}
+
+.events-sidebar {
+  width: 350px;
+  background-color: #2a2a2a;
+  border-left: 1px solid #444;
+  padding: 20px;
+  overflow-y: auto;
+}
+
+.events-sidebar h3 {
+  color: #dddddd;
+  margin-bottom: 20px;
+  font-size: 1.2em;
+  border-bottom: 2px solid #444;
+  padding-bottom: 10px;
+}
+
+.events-list {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.event-item {
+  background-color: #3a3a3a;
+  border-radius: 8px;
+  padding: 15px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  border: 2px solid transparent;
+}
+
+.event-item:hover {
+  background-color: #4a4a4a;
+  transform: translateY(-2px);
+}
+
+.event-item.selected {
+  border-color: #007bff;
+  background-color: #4a4a4a;
+}
+
+.event-item h4 {
+  color: #dddddd;
+  margin: 0 0 8px 0;
+  font-size: 1em;
+  line-height: 1.3;
+}
+
+.event-location {
+  color: #aaa;
+  font-size: 0.85em;
+  margin: 4px 0;
+}
+
+.event-date {
+  color: #ccc;
+  font-size: 0.85em;
+  margin: 4px 0;
+}
+
+.event-price {
+  color: #4CAF50;
+  font-weight: bold;
+  font-size: 0.9em;
+  margin: 4px 0;
+}
+
+.seat-type-indicator {
+  margin-top: 10px;
+  padding-top: 8px;
+  border-top: 1px solid #555;
+}
+
+.has-seats {
+  color: #007bff;
+  font-size: 0.8em;
+  font-weight: bold;
+}
+
+.general-tickets {
+  font-size: 0.8em;
+  font-weight: bold;
+}
+
+.general-tickets.available {
+  color: #4CAF50;
+}
+
+.general-tickets.unavailable {
+  color: #f44336;
 }
 
 h1 {
   margin-bottom: 10px;
   color: #dddddd;
+  font-size: 2em;
+}
+
+h2 {
+  margin-bottom: 15px;
+  color: #dddddd;
+  text-align: center;
+  max-width: 600px;
+}
+
+.event-info {
+  color: #dddddd;
+  margin-bottom: 20px;
+  text-align: center;
+}
+
+.event-info p {
+  margin: 5px 0;
 }
 
 .selected-seat-info {
-  margin-top: 10px;
-  padding: 10px;
+  margin-top: 15px;
+  padding: 12px;
   background-color: #f0f0f0;
-  border-radius: 4px;
+  border-radius: 6px;
   font-size: 14px;
+  color: #333;
+}
+
+.count-button {
+  background-color: #007bff;
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 14px;
+  margin-top: 15px;
+  transition: background-color 0.3s ease;
+}
+
+.count-button:hover {
+  background-color: #0056b3;
 }
 
 .count-info {
-  color:azure
+  color: azure;
+  margin: 8px 0;
+  font-size: 16px;
+}
+
+.general-tickets-info {
+  background-color: #2a2a2a;
+  border-radius: 8px;
+  padding: 20px;
+  margin-top: 20px;
+  text-align: center;
+  max-width: 400px;
+}
+
+.general-tickets-info h3 {
+  color: #dddddd;
+  margin-bottom: 15px;
+}
+
+.availability-status {
+  font-size: 1.2em;
+  font-weight: bold;
+  margin: 15px 0;
+  padding: 10px;
+  border-radius: 5px;
+}
+
+.availability-status.available {
+  color: #4CAF50;
+  background-color: rgba(76, 175, 80, 0.1);
+  border: 1px solid #4CAF50;
+}
+
+.availability-status.unavailable {
+  color: #f44336;
+  background-color: rgba(244, 67, 54, 0.1);
+  border: 1px solid #f44336;
+}
+
+.general-tickets-info p {
+  color: #ccc;
+  margin: 10px 0;
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+  .app-container {
+    flex-direction: column;
+  }
+  
+  .events-sidebar {
+    width: 100%;
+    max-height: 300px;
+  }
+  
+  .main-content {
+    padding: 10px;
+  }
+  
+  h1 {
+    font-size: 1.5em;
+  }
+  
+  h2 {
+    font-size: 1.2em;
+  }
 }

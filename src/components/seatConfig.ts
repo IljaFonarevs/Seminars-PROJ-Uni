@@ -1,104 +1,262 @@
 import { SeatData } from './Seat';
 
-// Define your seat layout with specific coordinates
-export const seatConfig: SeatData[] = [
-  // Front row (A)
-  { id: 1, label: 'A1', x: 50, y: 30, color: '#e0e0e0' },
-  { id: 2, label: 'A2', x: 100, y: 30, color: '#e0e0e0' },
-  { id: 3, label: 'A3', x: 150, y: 30, color: '#e0e0e0' },
-  { id: 4, label: 'A4', x: 200, y: 30, color: '#e0e0e0' },
-  { id: 5, label: 'A5', x: 250, y: 30, color: '#e0e0e0' },
-  { id: 6, label: 'A6', x: 300, y: 30, color: '#e0e0e0' },
-  
-  // Second row (B)
-  { id: 7, label: 'B1', x: 50, y: 80, color: '#c0c0c0' },
-  { id: 8, label: 'B2', x: 100, y: 80, color: '#c0c0c0' },
-  { id: 9, label: 'B3', x: 150, y: 80, color: '#c0c0c0' },
-  { id: 10, label: 'B4', x: 200, y: 80, color: '#c0c0c0' },
-  { id: 11, label: 'B5', x: 250, y: 80, color: '#c0c0c0' },
-  { id: 12, label: 'B6', x: 300, y: 80, color: '#c0c0c0' },
-  
-  // Third row (C) - with a gap in the middle
-  { id: 13, label: 'C1', x: 50, y: 130, color: '#e0e0e0' },
-  { id: 14, label: 'C2', x: 100, y: 130, color: '#e0e0e0' },
-  { id: 15, label: 'C3', x: 150, y: 130, color: '#e0e0e0' },
-  { id: 16, label: 'C4', x: 200, y: 130, color: '#e0e0e0', status: 'reserved' },
-  { id: 17, label: 'C5', x: 250, y: 130, color: '#e0e0e0', status: 'occupied' },
-  { id: 18, label: 'C6', x: 300, y: 130, color: '#e0e0e0' },
-  
-  // Fourth row (D) - with a different pattern
-  { id: 19, label: 'D1', x: 75, y: 180, color: '#c0c0c0' },
-  { id: 20, label: 'D2', x: 125, y: 180, color: '#c0c0c0' },
-  { id: 21, label: 'D3', x: 175, y: 180, color: '#c0c0c0' },
-  { id: 22, label: 'D4', x: 225, y: 180, color: '#c0c0c0' },
-  { id: 23, label: 'D5', x: 275, y: 180, color: '#c0c0c0' },
-  
-  // Fifth row (E) - curved pattern
-  { id: 24, label: 'E1', x: 50, y: 240, color: '#e0e0e0' },
-  { id: 25, label: 'E2', x: 110, y: 230, color: '#e0e0e0' },
-  { id: 26, label: 'E3', x: 170, y: 230, color: '#e0e0e0' },
-  { id: 27, label: 'E4', x: 230, y: 230, color: '#e0e0e0' },
-  { id: 28, label: 'E5', x: 290, y: 240, color: '#e0e0e0' },
-];
+// Interface for the JSON event structure
+interface EventSeat {
+  price: string;
+  row_num: string;
+  seat_num: string;
+  horizontal_position: number;
+  vertical_position: number;
+  available: boolean;
+}
 
-// You can define other layouts as needed
-export const circleLayout: SeatData[] = generateCircleLayout(150, 150, 100, 12);
-export const rectangleLayout: SeatData[] = generateRectangleLayout(50, 50, 300, 200, 6, 4);
+interface Event {
+  title: string;
+  date: string;
+  location: string;
+  link: string;
+  available: boolean;
+  priceMin: string;
+  seats: EventSeat[] | string; // Can be array of seats or string "ieejas biļetes"
+}
 
-// Helper function to generate seats in a circle
-function generateCircleLayout(
-  centerX: number, 
-  centerY: number, 
-  radius: number, 
-  numSeats: number
-): SeatData[] {
-  const seats: SeatData[] = [];
+// Interface for coordinate bounds
+interface CoordinateBounds {
+  minX: number;
+  maxX: number;
+  minY: number;
+  maxY: number;
+}
+
+// Enhanced interface for event configuration
+interface EventConfiguration {
+  seatConfig: SeatData[];
+  availabilityCounts: {
+    availableCount: number;
+    unavailableCount: number;
+    totalCount: number;
+  };
+  coordinateBounds: CoordinateBounds;
+  eventInfo: Event | null;
+  text: boolean | null; // New parameter for events without specific seats
+}
+
+// Function to read and parse events from JSON file
+export async function loadEventsFromJson(): Promise<Event[]> {
+  try {
+    const response = await fetch('../../events.json');
+    const events: Event[] = await response.json();
+    return events;
+  } catch (error) {
+    console.error('Error loading events from JSON:', error);
+    return [];
+  }
+}
+
+// Function to check if event has specific seats
+export function hasSpecificSeats(event: Event): boolean {
+  return Array.isArray(event.seats);
+}
+
+// Function to transform event seats to SeatData format
+export function transformSeatsToSeatData(eventSeats: EventSeat[]): SeatData[] {
+  return eventSeats.map((seat, index) => ({
+    id: index + 1, // Generate unique ID
+    label: seat.seat_num, // Use only seat_num for label
+    x: seat.horizontal_position,
+    y: seat.vertical_position,
+    color: seat.available ? '#e0e0e0' : '#ff6b6b', // Gray for available, red for unavailable
+    status: seat.available ? 'available' : 'occupied',
+    price: parseFloat(seat.price) // Store price as number
+  }));
+}
+
+// Function to get seat availability counts
+export function getSeatAvailabilityCounts(eventSeats: EventSeat[]): {
+  availableCount: number;
+  unavailableCount: number;
+  totalCount: number;
+} {
+  const availableCount = eventSeats.filter(seat => seat.available === true).length;
+  const unavailableCount = eventSeats.filter(seat => seat.available === false).length;
   
-  for (let i = 0; i < numSeats; i++) {
-    const angle = (i / numSeats) * 2 * Math.PI;
-    const x = centerX + radius * Math.cos(angle) - 20; // Adjust for seat width
-    const y = centerY + radius * Math.sin(angle) - 20; // Adjust for seat height
+  return {
+    availableCount,
+    unavailableCount,
+    totalCount: eventSeats.length
+  };
+}
+
+// Function to get min/max coordinates from seats
+export function getSeatCoordinateBounds(eventSeats: EventSeat[]): CoordinateBounds {
+  if (eventSeats.length === 0) {
+    return { minX: 0, maxX: 0, minY: 0, maxY: 0 };
+  }
+
+  const xCoordinates = eventSeats.map(seat => seat.horizontal_position);
+  const yCoordinates = eventSeats.map(seat => seat.vertical_position);
+
+  return {
+    minX: Math.min(...xCoordinates),
+    maxX: Math.max(...xCoordinates),
+    minY: Math.min(...yCoordinates),
+    maxY: Math.max(...yCoordinates)
+  };
+}
+
+// Function to get all events with their configurations
+export async function loadAllEventsConfiguration(): Promise<EventConfiguration[]> {
+  try {
+    const events = await loadEventsFromJson();
     
-    seats.push({
-      id: i + 1,
-      label: `C${i + 1}`,
-      x,
-      y,
-      color: i % 2 === 0 ? '#e0e0e0' : '#c0c0c0'
+    if (events.length === 0) {
+      console.warn('No events found');
+      return [];
+    }
+    
+    return events.map((event, index) => {
+      if (hasSpecificSeats(event)) {
+        // Event has specific seats
+        const eventSeats = event.seats as EventSeat[];
+        const seatConfig = transformSeatsToSeatData(eventSeats);
+        const availabilityCounts = getSeatAvailabilityCounts(eventSeats);
+        const coordinateBounds = getSeatCoordinateBounds(eventSeats);
+        
+        return {
+          seatConfig,
+          availabilityCounts,
+          coordinateBounds,
+          eventInfo: event,
+          text: null // null for events with specific seats
+        };
+      } else {
+        // Event has only general tickets ("ieejas biļetes")
+        return {
+          seatConfig: [],
+          availabilityCounts: { availableCount: 0, unavailableCount: 0, totalCount: 0 },
+          coordinateBounds: { minX: 0, maxX: 0, minY: 0, maxY: 0 },
+          eventInfo: event,
+          text: event.available // true if available, false if not available
+        };
+      }
     });
+  } catch (error) {
+    console.error('Error loading all events configuration:', error);
+    return [];
   }
-  
-  return seats;
 }
 
-// Helper function to generate seats in a rectangle
-function generateRectangleLayout(
-  startX: number,
-  startY: number,
-  width: number,
-  height: number,
-  columns: number,
-  rows: number
-): SeatData[] {
-  const seats: SeatData[] = [];
-  const xStep = width / columns;
-  const yStep = height / rows;
-  let id = 1;
-  
-  for (let row = 0; row < rows; row++) {
-    for (let col = 0; col < columns; col++) {
-      const x = startX + col * xStep;
-      const y = startY + row * yStep;
-      
-      seats.push({
-        id: id++,
-        label: `${String.fromCharCode(65 + row)}${col + 1}`,
-        x,
-        y,
-        color: (row + col) % 2 === 0 ? '#e0e0e0' : '#c0c0c0'
-      });
+// Enhanced function to load seat configuration from events.json
+export async function loadSeatConfigFromJson(
+  eventIndex: number = 0
+): Promise<EventConfiguration> {
+  try {
+    const events = await loadEventsFromJson();
+    
+    if (events.length === 0 || !events[eventIndex]) {
+      console.warn(`No event found at index ${eventIndex}`);
+      return {
+        seatConfig: [],
+        availabilityCounts: { availableCount: 0, unavailableCount: 0, totalCount: 0 },
+        coordinateBounds: { minX: 0, maxX: 0, minY: 0, maxY: 0 },
+        eventInfo: null,
+        text: null
+      };
     }
+    
+    const selectedEvent = events[eventIndex];
+    
+    if (hasSpecificSeats(selectedEvent)) {
+      // Event has specific seats
+      const eventSeats = selectedEvent.seats as EventSeat[];
+      const seatConfig = transformSeatsToSeatData(eventSeats);
+      const availabilityCounts = getSeatAvailabilityCounts(eventSeats);
+      const coordinateBounds = getSeatCoordinateBounds(eventSeats);
+      
+      return {
+        seatConfig,
+        availabilityCounts,
+        coordinateBounds,
+        eventInfo: selectedEvent,
+        text: null // null for events with specific seats
+      };
+    } else {
+      // Event has only general tickets ("ieejas biļetes")
+      return {
+        seatConfig: [],
+        availabilityCounts: { availableCount: 0, unavailableCount: 0, totalCount: 0 },
+        coordinateBounds: { minX: 0, maxX: 0, minY: 0, maxY: 0 },
+        eventInfo: selectedEvent,
+        text: selectedEvent.available // true if available, false if not available
+      };
+    }
+  } catch (error) {
+    console.error('Error loading seat configuration:', error);
+    return {
+      seatConfig: [],
+      availabilityCounts: { availableCount: 0, unavailableCount: 0, totalCount: 0 },
+      coordinateBounds: { minX: 0, maxX: 0, minY: 0, maxY: 0 },
+      eventInfo: null,
+      text: null
+    };
   }
-  
-  return seats;
 }
+
+// Function to get available events (for events without specific seats)
+export async function getAvailableEventsWithoutSeats(): Promise<Event[]> {
+  try {
+    const events = await loadEventsFromJson();
+    return events.filter(event => !hasSpecificSeats(event) && event.available);
+  } catch (error) {
+    console.error('Error loading available events without seats:', error);
+    return [];
+  }
+}
+
+// Function to get events with specific seats
+export async function getEventsWithSeats(): Promise<Event[]> {
+  try {
+    const events = await loadEventsFromJson();
+    return events.filter(event => hasSpecificSeats(event));
+  } catch (error) {
+    console.error('Error loading events with seats:', error);
+    return [];
+  }
+}
+
+// Usage examples:
+
+// Load all events with their configurations
+const allEventsConfig = await loadAllEventsConfiguration();
+console.log('All events configuration:', allEventsConfig);
+
+// Load specific event configuration
+const { seatConfig, availabilityCounts, coordinateBounds, eventInfo, text } = await loadSeatConfigFromJson(4); // KINO event with seats
+
+if (text !== null) {
+  console.log('Event availability (text parameter):', text);
+  console.log('This event has general tickets only');
+} else {
+  console.log('Available seats:', availabilityCounts.availableCount);
+  console.log('Unavailable seats:', availabilityCounts.unavailableCount);
+  console.log('Total seats:', availabilityCounts.totalCount);
+  console.log('Coordinate bounds:', coordinateBounds);
+}
+
+console.log('Event info:', eventInfo?.title);
+console.log('Event location:', eventInfo?.location);
+console.log('Event date:', eventInfo?.date);
+
+// Load events without specific seats
+const eventsWithoutSeats = await getAvailableEventsWithoutSeats();
+console.log('Available events without seats:', eventsWithoutSeats.length);
+
+// Load events with specific seats
+const eventsWithSeats = await getEventsWithSeats();
+console.log('Events with specific seats:', eventsWithSeats.length);
+
+export { seatConfig, availabilityCounts, eventInfo, text };
+export { coordinateBounds as seatBounds };
+
+// Export types for external use
+export type { CoordinateBounds, Event, EventSeat, EventConfiguration };

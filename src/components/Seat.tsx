@@ -7,6 +7,7 @@ export type SeatData = {
   y: number;
   color?: string;
   status?: 'available' | 'reserved' | 'occupied';
+  price?: number; // Added price field to match the JSON structure
 };
 
 type SeatProps = {
@@ -16,14 +17,14 @@ type SeatProps = {
 };
 
 export function Seat({ seat, isSelected, onClick }: SeatProps) {
-  const { label, x, y, color = '#e0e0e0', status = 'available' } = seat;
+  const { label, x, y, color = '#e0e0e0', status = 'available', price } = seat;
 
   // Determine styling based on status and selection
   let statusStyle = {};
   if (status === 'reserved') {
     statusStyle = { backgroundColor: '#ffcc80', cursor: 'not-allowed' };
   } else if (status === 'occupied') {
-    statusStyle = { backgroundColor: '#ef9a9a', cursor: 'not-allowed' };
+    statusStyle = { backgroundColor: '#ff6b6b', cursor: 'not-allowed' }; // Changed to match the color used in transformation
   }
 
   const selectionStyle = isSelected ? {
@@ -45,8 +46,18 @@ export function Seat({ seat, isSelected, onClick }: SeatProps) {
         ...selectionStyle
       }}
       onClick={status === 'available' ? onClick : undefined}
+      title={price ? `Seat ${label} - €${price.toFixed(2)}` : `Seat ${label}`} // Added tooltip with price info
     >
       {label}
+      {price && (
+        <div className="seat-price" style={{ 
+          fontSize: '0.7em', 
+          opacity: 0.8,
+          marginTop: '2px'
+        }}>
+          
+        </div>
+      )}
     </div>
   );
 }

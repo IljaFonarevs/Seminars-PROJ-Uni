@@ -6,9 +6,9 @@ on:
     - cron: '0 2 * * 0'
   
   workflow_dispatch:
-push:
-    branches: [ main, master ]
-    paths: [ 'scraper.js', '.github/workflows/update-events.yml' ]
+  push:
+      branches: [ main, master ]
+      paths: [ 'scraper.js', '.github/workflows/update-events.yml' ]
 
 jobs:
   update-events:

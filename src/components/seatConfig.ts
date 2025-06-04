@@ -41,12 +41,52 @@ interface EventConfiguration {
   text: boolean | null; // New parameter for events without specific seats
 }
 
-// Function to read and parse events from JSON file
+// Function to read and parse events from JSON file with cache busting
 export async function loadEventsFromJson(): Promise<Event[]> {
   try {
-    const response = await fetch('../../public/events.json');
-    const events: Event[] = await response.json();
-    return events.events;
+    // Add timestamp to prevent caching
+    const timestamp = new Date().getTime();
+    const cacheBuster = `?v=${timestamp}`;
+    
+    const response = await fetch(`../../public/events.json${cacheBuster}`, {
+      // Additional headers to prevent caching
+      headers: {
+        'Cache-Control': 'no-cache, no-store, must-revalidate',
+        'Pragma': 'no-cache',
+        'Expires': '0'
+      }
+    });
+    
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+    
+    const data = await response.json();
+    return data.events || data; // Handle both {events: [...]} and [...] formats
+  } catch (error) {
+    console.error('Error loading events from JSON:', error);
+    return [];
+  }
+}
+
+// Alternative function with version parameter (if you use versioning)
+export async function loadEventsFromJsonWithVersion(version?: string): Promise<Event[]> {
+  try {
+    const versionParam = version || new Date().getTime().toString();
+    const response = await fetch(`../../public/events.json?v=${versionParam}`, {
+      headers: {
+        'Cache-Control': 'no-cache, no-store, must-revalidate',
+        'Pragma': 'no-cache',
+        'Expires': '0'
+      }
+    });
+    
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+    
+    const data = await response.json();
+    return data.events || data;
   } catch (error) {
     console.error('Error loading events from JSON:', error);
     return [];
@@ -224,39 +264,24 @@ export async function getEventsWithSeats(): Promise<Event[]> {
   }
 }
 
-// Usage examples:
-
-// Load all events with their configurations
-const allEventsConfig = await loadAllEventsConfiguration();
-console.log('All events configuration:', allEventsConfig);
-
-// Load specific event configuration
-const { seatConfig, availabilityCounts, coordinateBounds, eventInfo, text } = await loadSeatConfigFromJson(4); // KINO event with seats
-
-if (text !== null) {
-  console.log('Event availability (text parameter):', text);
-  console.log('This event has general tickets only');
-} else {
-  console.log('Available seats:', availabilityCounts.availableCount);
-  console.log('Unavailable seats:', availabilityCounts.unavailableCount);
-  console.log('Total seats:', availabilityCounts.totalCount);
-  console.log('Coordinate bounds:', coordinateBounds);
+// Function to force refresh data (can be called manually)
+export async function forceRefreshEvents(): Promise<Event[]> {
+  try {
+    // Clear any potential cache first
+    if ('caches' in window) {
+      const cacheNames = await caches.keys();
+      await Promise.all(
+        cacheNames.map(cacheName => caches.delete(cacheName))
+      );
+    }
+    
+    // Load fresh data
+    return await loadEventsFromJson();
+  } catch (error) {
+    console.error('Error force refreshing events:', error);
+    return [];
+  }
 }
-
-console.log('Event info:', eventInfo?.title);
-console.log('Event location:', eventInfo?.location);
-console.log('Event date:', eventInfo?.date);
-
-// Load events without specific seats
-const eventsWithoutSeats = await getAvailableEventsWithoutSeats();
-console.log('Available events without seats:', eventsWithoutSeats.length);
-
-// Load events with specific seats
-const eventsWithSeats = await getEventsWithSeats();
-console.log('Events with specific seats:', eventsWithSeats.length);
-
-export { seatConfig, availabilityCounts, eventInfo, text };
-export { coordinateBounds as seatBounds };
 
 // Export types for external use
 export type { CoordinateBounds, Event, EventSeat, EventConfiguration };

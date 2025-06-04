@@ -5,6 +5,7 @@ import { Canvas } from './components/Canvas';
 import { 
   loadSeatConfigFromJson, 
   loadAllEventsConfiguration, 
+  forceRefreshEvents,
   EventConfiguration, 
   Event 
 } from './components/seatConfig';
@@ -21,25 +22,46 @@ function App() {
   const [seatBounds, setSeatBounds] = useState({ minX: 0, maxX: 0, minY: 0, maxY: 0 });
   const [allEvents, setAllEvents] = useState<EventConfiguration[]>([]);
   const [selectedEventIndex, setSelectedEventIndex] = useState<number>(0);
+  const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [lastUpdated, setLastUpdated] = useState<string>('');
 
   // Load all events on component mount
   useEffect(() => {
-    const loadEvents = async () => {
-      try {
-        const eventsConfig = await loadAllEventsConfiguration();
-        setAllEvents(eventsConfig);
-        
-        // Load first event by default if available
-        if (eventsConfig.length > 0) {
-          loadEventByIndex(0);
-        }
-      } catch (error) {
-        console.error('Error loading events:', error);
-      }
-    };
-    
     loadEvents();
   }, []);
+
+  const loadEvents = async () => {
+    setIsLoading(true);
+    try {
+      const eventsConfig = await loadAllEventsConfiguration();
+      setAllEvents(eventsConfig);
+      setLastUpdated(new Date().toLocaleTimeString());
+      
+      // Load first event by default if available
+      if (eventsConfig.length > 0) {
+        loadEventByIndex(0);
+      }
+    } catch (error) {
+      console.error('Error loading events:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Force refresh data from server
+  const handleForceRefresh = async () => {
+    setIsLoading(true);
+    try {
+      console.log('Forcing refresh of events data...');
+      await forceRefreshEvents();
+      await loadEvents();
+      console.log('Data refreshed successfully');
+    } catch (error) {
+      console.error('Error refreshing data:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   // Load specific event by index
   const loadEventByIndex = async (index: number) => {
@@ -82,7 +104,22 @@ function App() {
   return (
     <div className="app-container">
       <div className="main-content">
-        <h1>Select Seat</h1>
+        <div className="header-section">
+          <h1>Select Seat</h1>
+          <div className="refresh-section">
+            <button 
+              className="refresh-button" 
+              onClick={handleForceRefresh}
+              disabled={isLoading}
+            >
+              {isLoading ? 'Updating...' : '🔄 Update data'}
+            </button>
+            {lastUpdated && (
+              <p className="last-updated">Last update: {lastUpdated}</p>
+            )}
+          </div>
+        </div>
+        
         <h2>{currentEventInfo?.title}</h2>
         <div className="event-info">
           <p>Date: {currentEventInfo?.date || 'No date specified'}</p>
@@ -140,29 +177,35 @@ function App() {
       <div className="events-sidebar">
         <h3>All Events</h3>
         <div className="events-list">
-          {allEvents.map((eventConfig, index) => (
-            <div 
-              key={index}
-              className={`event-item ${selectedEventIndex === index ? 'selected' : ''}`}
-              onClick={() => handleEventClick(index)}
-            >
-              <h4>{eventConfig.eventInfo?.title}</h4>
-              <p className="event-location">{eventConfig.eventInfo?.location}</p>
-              <p className="event-date">{eventConfig.eventInfo?.date || 'No date'}</p>
-              <p className="event-price">From: {eventConfig.eventInfo?.priceMin}</p>
-              
-              {/* Show seat type indicator */}
-              <div className="seat-type-indicator">
-                {eventConfig.text === null ? (
-                  <span className="has-seats">🪑 Seat Selection</span>
-                ) : (
-                  <span className={`general-tickets ${eventConfig.text ? 'available' : 'unavailable'}`}>
-                    🎫 {eventConfig.text ? 'Available' : 'Sold Out'}
-                  </span>
-                )}
-              </div>
+          {isLoading ? (
+            <div className="loading-indicator">
+              <p>Загрузка событий...</p>
             </div>
-          ))}
+          ) : (
+            allEvents.map((eventConfig, index) => (
+              <div 
+                key={index}
+                className={`event-item ${selectedEventIndex === index ? 'selected' : ''}`}
+                onClick={() => handleEventClick(index)}
+              >
+                <h4>{eventConfig.eventInfo?.title}</h4>
+                <p className="event-location">{eventConfig.eventInfo?.location}</p>
+                <p className="event-date">{eventConfig.eventInfo?.date || 'No date'}</p>
+                <p className="event-price">From: {eventConfig.eventInfo?.priceMin}</p>
+                
+                {/* Show seat type indicator */}
+                <div className="seat-type-indicator">
+                  {eventConfig.text === null ? (
+                    <span className="has-seats">🪑 Seat Selection</span>
+                  ) : (
+                    <span className={`general-tickets ${eventConfig.text ? 'available' : 'unavailable'}`}>
+                      🎫 {eventConfig.text ? 'Available' : 'Sold Out'}
+                    </span>
+                  )}
+                </div>
+              </div>
+            ))
+          )}
         </div>
       </div>
     </div>

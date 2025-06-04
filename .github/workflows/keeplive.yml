@@ -1,10 +1,8 @@
 name: Keep Fork Active
 
 on:
-  # Запуск каждые 50 дней (GitHub отключает неактивные форки через 60 дней)
   schedule:
     - cron: '0 0 */50 * *'
-  
   workflow_dispatch:
 
 jobs:
@@ -16,12 +14,7 @@ jobs:
         
       - name: Keep alive
         run: |
-          echo "Fork is active - $(date)" >> keepalive.log
-          
-      - name: Commit keepalive
-        run: |
-          git config --local user.email "action@github.com"
+          git config --local user.email "${{ github.repository_owner }}@users.noreply.github.com"
           git config --local user.name "GitHub Action Keepalive"
-          git add keepalive.log
-          git diff --staged --quiet || git commit -m "Keep fork active - $(date +'%Y-%m-%d')"
-          git push || echo "Nothing to push"
+          git commit --allow-empty -m "🔄 Keep fork active - $(date +'%Y-%m-%d')"
+          git push

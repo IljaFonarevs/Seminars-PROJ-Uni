@@ -1,14 +1,15 @@
 name: Update Events Data
 
 on:
-  # Update every Sunday 02:00
   schedule:
     - cron: '0 2 * * 0'
-
   workflow_dispatch:
   push:
-      branches: [ main, master ]
-      paths: [ 'scraper.js', 'DIMSPuppeteer.js', '.github/workflows/update-events.yml' ]
+    branches: [ main, master ]
+    paths: [ 'scraper.js', 'DIMSPuppeteer.js', '.github/workflows/update-events.yml' ]
+
+permissions:
+  contents: write  # 👈 необходимо для работы с GITHUB_TOKEN или push
 
 jobs:
   update-events:
@@ -28,12 +29,10 @@ jobs:
           cache: 'npm'
 
       - name: Install dependencies
-        run: |
-          npm install
+        run: npm install
 
       - name: Run DIMSPuppeteer script
-        run: |
-          node DIMSPuppeteer.js
+        run: node DIMSPuppeteer.js
 
       - name: Check for changes
         id: git-check
@@ -49,10 +48,8 @@ jobs:
           git config --local user.name "GitHub Action"
           git add public/events.json
           git commit -m "Auto-update events data - $(date +'%Y-%m-%d %H:%M:%S')"
-          git push https://${TOKEN}@github.com/IljaFonarevs/Seminars-PROJ-Uni.git HEAD:master
-
+          git push https://${TOKEN}@github.com/${{ github.repository }}.git HEAD:"$(git rev-parse --abbrev-ref HEAD)"
 
       - name: No changes detected
         if: steps.git-check.outputs.changed != 'true'
-        run: |
-          echo "No changes in events.json detected"
+        run: echo "No changes in events.json detected"

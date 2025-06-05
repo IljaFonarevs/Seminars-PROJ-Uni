@@ -42,12 +42,15 @@ jobs:
 
       - name: Commit and push changes
         if: steps.git-check.outputs.changed == 'true'
+        env:
+          TOKEN: ${{ secrets.PAT_TOKEN }}
         run: |
           git config --local user.email "action@github.com"
           git config --local user.name "GitHub Action"
           git add public/events.json
           git commit -m "Auto-update events data - $(date +'%Y-%m-%d %H:%M:%S')"
-          git push
+          git push https://${TOKEN}@github.com/IljaFonarevs/Seminars-PROJ-Uni.git HEAD:master
+
 
       - name: No changes detected
         if: steps.git-check.outputs.changed != 'true'
